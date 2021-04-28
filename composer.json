@@ -1,0 +1,39 @@
+{
+    "name": "nearata/flarum-ext-dsts",
+    "description": "Do something to see the first post of a discussion.",
+    "keywords": [
+        "flarum"
+    ],
+    "type": "flarum-extension",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/Nearata/flarum-ext-dsts/issues",
+        "source": "https://github.com/Nearata/flarum-ext-dsts"
+    },
+    "require": {
+        "flarum/core": ">=0.1.0-beta.16 <=0.1.0"
+    },
+    "authors": [
+        {
+            "name": "Nearata",
+            "email": "williamdicicco@protonmail.com",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Nearata\\Dsts\\": "src/"
+        }
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Do Something To See",
+            "category": "feature",
+            "icon": {
+                "name": "fas fa-eye",
+                "backgroundColor": "#087F8C",
+                "color": "#fff"
+            }
+        }
+    }
+}
