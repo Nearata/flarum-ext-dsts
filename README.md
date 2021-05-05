@@ -8,7 +8,7 @@
 
 ## Features
 
-- Guests can't see the posts.
+- Guests can't see the first post.
 - Require user to like the post. (toggable)
 - Require user to reply to the discussion. (toggable)
 
