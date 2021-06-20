@@ -1,5 +1,7 @@
 # Do Something To See
 
+![latest](https://flarum-badge-api.davwheat.dev/v1/compat-latest/nearata/flarum-ext-dsts)
+
 > A [Flarum](http://flarum.org) extension. Do something to see the first post of a discussion.
 
 ## Preview
