@@ -3,18 +3,24 @@
 namespace Nearata\Dsts;
 
 use Flarum\Api\Serializer\BasicPostSerializer;
-use Flarum\Discussion\Discussion;
 use Flarum\Post\Post;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-
 class CustomBasicPostSerializer
 {
+    protected $translator;
+    protected $settings;
+
+    public function __construct(TranslatorInterface $translator, SettingsRepositoryInterface $settings)
+    {
+        $this->translator = $translator;
+        $this->settings = $settings;
+    }
+
     public function __invoke(BasicPostSerializer $serializer, Post $post, array $attributes)
     {
-        $discussionId = $post->discussion_id;
-        $discussion = Discussion::where('id', $discussionId)->first();
+        $discussion = $post->discussion;
         $firstPostId = $discussion->first_post_id;
         $postId = $post->id;
 
@@ -67,8 +73,7 @@ class CustomBasicPostSerializer
 
     private function getPlain(string $key): string
     {
-        return resolve(TranslatorInterface::class)
-            ->get('nearata-dsts.forum.'.$key);
+        return $this->translator->trans('nearata-dsts.forum.'.$key);
     }
 
     private function getHtml(string $key): string
@@ -78,7 +83,7 @@ class CustomBasicPostSerializer
 
     private function requires(string $key): bool
     {
-        return resolve(SettingsRepositoryInterface::class)
+        return $this->settings
             ->get('nearata-dsts.admin.settings.require_'.$key, false);
     }
 }
