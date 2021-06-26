@@ -1,9 +1,10 @@
+import app from 'flarum/admin/app';
+
 const trans = (register, key) => {
     return app.translator.trans(`nearata-dsts.admin.${register}.${key}`);
 }
 
-
-app.initializers.add('nearata-dsts', app => {
+app.initializers.add('nearata-dsts', () => {
     app.extensionData.for('nearata-dsts')
         .registerSetting(
             {
@@ -25,6 +26,7 @@ app.initializers.add('nearata-dsts', app => {
                 icon: 'fas fa-eye',
                 label: trans('permissions', 'can_bypass_like'),
                 permission: 'nearata.dsts.can_bypass_like',
+                tagScoped: true,
             },
             'view'
         )
@@ -33,6 +35,7 @@ app.initializers.add('nearata-dsts', app => {
                 icon: 'fas fa-eye',
                 label: trans('permissions', 'can_bypass_reply'),
                 permission: 'nearata.dsts.can_bypass_reply',
+                tagScoped: true,
             },
             'view'
         );
