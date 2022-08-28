@@ -29,6 +29,11 @@ app.initializers.add("nearata-dsts", () => {
         const item = this.element.querySelector(
             ".PostStream > .PostStream-item"
         );
+
+        if (item === null) {
+            return;
+        }
+
         const btn = item.querySelector(".item-like > button");
 
         if (btn === null) {

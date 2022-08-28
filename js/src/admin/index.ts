@@ -1,6 +1,6 @@
 import app from "flarum/admin/app";
 
-const trans = (key) => {
+const trans = (key: string) => {
     return app.translator.trans(`nearata-dsts.admin.${key}`);
 };
 

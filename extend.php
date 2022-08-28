@@ -16,5 +16,5 @@ return [
     new Extend\Locales(__DIR__ . '/resources/locale'),
 
     (new Extend\ApiSerializer(BasicPostSerializer::class))
-        ->attributes(CustomBasicPostSerializer::class)
+        ->attributes(ExtendBasicPostSerializer::class)
 ];

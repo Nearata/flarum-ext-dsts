@@ -7,7 +7,7 @@ use Flarum\Post\Post;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class CustomBasicPostSerializer
+class ExtendBasicPostSerializer
 {
     protected $translator;
     protected $settings;
