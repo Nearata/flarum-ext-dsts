@@ -30,6 +30,19 @@ class ExtendBasicPostSerializer
 
         $actor = $serializer->getActor();
 
+        $allowed = collect();
+
+        try {
+            $allowed = collect($discussion->tags)
+                ->filter(function ($value, $key) use ($actor) {
+                    return $value->is_restricted && $actor->can("nearata-dsts.bypass-login", $value);
+                });
+        } catch (\Throwable $th) {}
+
+        if ($allowed->count()) {
+            return $attributes;
+        }
+
         if ($actor->isGuest()) {
             return [
                 'content' => $this->getPlain('login'),

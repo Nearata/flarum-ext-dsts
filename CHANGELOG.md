@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Check if tag is restricted. [[Fix #4](https://github.com/Nearata/flarum-ext-dsts/issues/4)]
+- Allow guests to see the content by tag. [Requires flarum/tags]
 
 ## [2.1.0] - 2021-06-26
 

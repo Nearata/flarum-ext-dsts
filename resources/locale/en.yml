@@ -3,6 +3,7 @@ nearata-dsts:
     permissions:
       can_bypass_like: Can bypass like
       can_bypass_reply: Can bypass reply
+      can_bypass_login: Can bypass login
     settings:
       require_like: Require like
       require_like_help: "Note: Requires Flarum Likes extension."

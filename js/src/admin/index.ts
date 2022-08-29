@@ -35,5 +35,15 @@ app.initializers.add("nearata-dsts", () => {
                 tagScoped: true,
             },
             "view"
+        )
+        .registerPermission(
+            {
+                icon: "fas fa-eye",
+                label: trans("permissions.can_bypass_login"),
+                permission: "nearata-dsts.bypass-login",
+                allowGuest: true,
+                tagScoped: true,
+            },
+            "view"
         );
 });
