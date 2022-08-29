@@ -31,9 +31,10 @@ class ExtendBasicPostSerializer
         $actor = $serializer->getActor();
 
         if ($actor->isGuest()) {
-            $attributes['content'] = $this->getPlain('login');
-            $attributes['contentHtml'] = $this->getHtml('login');
-            return $attributes;
+            return [
+                'content' => $this->getPlain('login'),
+                'contentHtml' => $this->getHtml('login')
+            ];
         }
 
         $actorId = $actor->id;
@@ -59,13 +60,15 @@ class ExtendBasicPostSerializer
                     ->exists();
 
                 if ($restricted->count() && !$liked) {
-                    $attributes['content'] = $this->getPlain('like');
-                    $attributes['contentHtml'] = $this->getHtml('like');
-                    return $attributes;
+                    return [
+                        'content' => $this->getPlain('like'),
+                        'contentHtml' => $this->getHtml('like')
+                    ];
                 } else if (!$liked) {
-                    $attributes['content'] = $this->getPlain('like');
-                    $attributes['contentHtml'] = $this->getHtml('like');
-                    return $attributes;
+                    return [
+                        'content' => $this->getPlain('like'),
+                        'contentHtml' => $this->getHtml('like')
+                    ];
                 }
             } catch (\Throwable $th) {}
         }
@@ -86,13 +89,15 @@ class ExtendBasicPostSerializer
             } catch (\Throwable $th) {}
 
             if ($restricted->count() && !$replied) {
-                $attributes['content'] = $this->getPlain('reply');
-                $attributes['contentHtml'] = $this->getHtml('reply');
-                return $attributes;
+                return [
+                    'content' => $this->getPlain('reply'),
+                    'contentHtml' => $this->getHtml('reply')
+                ];
             } else if (!$replied) {
-                $attributes['content'] = $this->getPlain('reply');
-                $attributes['contentHtml'] = $this->getHtml('reply');
-                return $attributes;
+                return [
+                    'content' => $this->getPlain('reply'),
+                    'contentHtml' => $this->getHtml('reply')
+                ];
             }
         }
 

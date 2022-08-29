@@ -1,9 +1,11 @@
+import { ApiResponseSingle } from "flarum/common/Store";
 import { extend } from "flarum/common/extend";
+import Post from "flarum/common/models/Post";
 import app from "flarum/forum/app";
 import PostStream from "flarum/forum/components/PostStream";
 import ReplyComposer from "flarum/forum/components/ReplyComposer";
 
-const getFirstPost = () => {
+const getFirstPost = (): Post => {
     return app.current.get("discussion").posts().shift();
 };
 
@@ -12,8 +14,13 @@ const refresh = () => {
     const id = firstPost.id();
     const oldHtml = firstPost.contentHtml();
 
+    if (!id) {
+        return;
+    }
+
     const interval = setInterval(() => {
-        app.store.find("posts", id).then((r) => {
+        // @ts-ignore
+        app.store.find("posts", id).then<any>((r: ApiResponseSingle<Post>) => {
             const newHtml = r.contentHtml();
 
             if (newHtml !== oldHtml) {
@@ -40,19 +47,14 @@ app.initializers.add("nearata-dsts", () => {
             return;
         }
 
-        btn.addEventListener("click", () => {
-            refresh();
-        });
+        btn.addEventListener("click", () => refresh());
     });
 
     extend(ReplyComposer.prototype, "onsubmit", function () {
-        const firstPost = getFirstPost();
-        const oldHtml = firstPost.contentHtml();
+        const oldHtml = getFirstPost().contentHtml();
 
-        if (!oldHtml.startsWith('<p class="Nearata-dsts">')) {
-            return;
+        if (oldHtml && oldHtml.startsWith('<p class="Nearata-dsts">')) {
+            refresh();
         }
-
-        refresh();
     });
 });
