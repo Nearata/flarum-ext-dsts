@@ -42,13 +42,27 @@ class ExtendBasicPostSerializer
             return $attributes;
         }
 
-        if ($this->requires('like') && !$actor->hasPermission('nearata.dsts.can_bypass_like')) {
+        if ($this->requires('like') && $actor->cannot('nearata-dsts.bypass-like')) {
+            $restricted = collect();
+
+            try {
+                $restricted = collect($discussion->tags)
+                    ->filter(function ($value, $key) use ($actor) {
+                        $id = $value->id;
+                        return $value->is_restricted && $actor->cannot("tag$id.nearata-dsts.bypass-like");
+                    });
+            } catch (\Throwable $th) {}
+
             try {
                 $liked = $post->likes()
                     ->where('user_id', $actorId)
                     ->exists();
 
-                if (!$liked) {
+                if ($restricted->count() && !$liked) {
+                    $attributes['content'] = $this->getPlain('like');
+                    $attributes['contentHtml'] = $this->getHtml('like');
+                    return $attributes;
+                } else if (!$liked) {
                     $attributes['content'] = $this->getPlain('like');
                     $attributes['contentHtml'] = $this->getHtml('like');
                     return $attributes;
@@ -56,12 +70,26 @@ class ExtendBasicPostSerializer
             } catch (\Throwable $th) {}
         }
 
-        if ($this->requires('reply') && !$actor->hasPermission('nearata.dsts.can_bypass_reply')) {
+        if ($this->requires('reply') && $actor->cannot('nearata-dsts.bypass-reply')) {
             $replied = $discussion->posts()
                 ->where('user_id', $actorId)
+                ->where('hidden_at', null)
                 ->exists();
+            $restricted = collect();
 
-            if (!$replied) {
+            try {
+                $restricted = collect($discussion->tags)
+                    ->filter(function ($value, $key) use ($actor) {
+                        $id = $value->id;
+                        return $value->is_restricted && $actor->cannot("tag$id.nearata-dsts.bypass-reply");
+                    });
+            } catch (\Throwable $th) {}
+
+            if ($restricted->count() && !$replied) {
+                $attributes['content'] = $this->getPlain('reply');
+                $attributes['contentHtml'] = $this->getHtml('reply');
+                return $attributes;
+            } else if (!$replied) {
                 $attributes['content'] = $this->getPlain('reply');
                 $attributes['contentHtml'] = $this->getHtml('reply');
                 return $attributes;
@@ -73,7 +101,7 @@ class ExtendBasicPostSerializer
 
     private function getPlain(string $key): string
     {
-        return $this->translator->trans('nearata-dsts.forum.'.$key);
+        return $this->translator->trans("nearata-dsts.forum.$key");
     }
 
     private function getHtml(string $key): string
@@ -84,6 +112,6 @@ class ExtendBasicPostSerializer
     private function requires(string $key): bool
     {
         return $this->settings
-            ->get('nearata-dsts.admin.settings.require_'.$key, false);
+            ->get("nearata-dsts.admin.settings.require_$key");
     }
 }

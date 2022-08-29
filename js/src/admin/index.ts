@@ -22,7 +22,7 @@ app.initializers.add("nearata-dsts", () => {
             {
                 icon: "fas fa-eye",
                 label: trans("permissions.can_bypass_like"),
-                permission: "nearata.dsts.can_bypass_like",
+                permission: "nearata-dsts.bypass-like",
                 tagScoped: true,
             },
             "view"
@@ -31,7 +31,7 @@ app.initializers.add("nearata-dsts", () => {
             {
                 icon: "fas fa-eye",
                 label: trans("permissions.can_bypass_reply"),
-                permission: "nearata.dsts.can_bypass_reply",
+                permission: "nearata-dsts.bypass-reply",
                 tagScoped: true,
             },
             "view"
