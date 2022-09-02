@@ -1,4 +1,7 @@
 import { ApiResponseSingle } from "flarum/common/Store";
+import Button from "flarum/common/components/Button";
+import TextEditor from "flarum/common/components/TextEditor";
+import Tooltip from "flarum/common/components/Tooltip";
 import { extend } from "flarum/common/extend";
 import Post from "flarum/common/models/Post";
 import app from "flarum/forum/app";
@@ -56,5 +59,28 @@ app.initializers.add("nearata-dsts", () => {
         if (oldHtml && oldHtml.startsWith('<p class="Nearata-dsts">')) {
             refresh();
         }
+    });
+
+    extend(TextEditor.prototype, "controlItems", function (items) {
+        items.add(
+            "nearataDsts",
+            m(
+                Tooltip,
+                {
+                    text: app.translator.trans("nearata-dsts.forum.button"),
+                },
+                [
+                    m(Button, {
+                        icon: "fas fa-eye-slash",
+                        class: "Button Button--icon",
+                        onclick: () => {
+                            this.attrs.composer.editor.insertAtCursor(
+                                '[nearata-dsts login="true" like="false" reply="false"][/nearata-dsts]'
+                            );
+                        },
+                    }),
+                ]
+            )
+        );
     });
 });

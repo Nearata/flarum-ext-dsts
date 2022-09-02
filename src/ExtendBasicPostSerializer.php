@@ -3,9 +3,13 @@
 namespace Nearata\Dsts;
 
 use Flarum\Api\Serializer\BasicPostSerializer;
+use Flarum\Discussion\Discussion;
+use Flarum\Post\CommentPost;
 use Flarum\Post\Post;
 use Flarum\Settings\SettingsRepositoryInterface;
+use Flarum\User\User;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Illuminate\Support\Str;
 
 class ExtendBasicPostSerializer
 {
@@ -20,98 +24,77 @@ class ExtendBasicPostSerializer
 
     public function __invoke(BasicPostSerializer $serializer, Post $post, array $attributes)
     {
-        $discussion = $post->discussion;
-        $firstPostId = $discussion->first_post_id;
-        $postId = $post->id;
-
-        if ($postId !== $firstPostId) {
+        if (!($post instanceof CommentPost)) {
             return $attributes;
         }
 
         $actor = $serializer->getActor();
+        $discussion = $post->discussion;
 
-        $allowed = collect();
+        if (Str::contains($post->content, '[nearata-dsts')) {
+            $search = Str::matchAll("/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]/s", $post->content);
+            $replacements = collect();
 
-        try {
-            $allowed = collect($discussion->tags)
-                ->filter(function ($value, $key) use ($actor) {
-                    return $value->is_restricted && $actor->can("nearata-dsts.bypass-login", $value);
-                });
-        } catch (\Throwable $th) {}
+            $search->each(function ($item) use ($replacements, $post, $actor, $discussion) {
+                if (Str::contains($item, 'login="true"')) {
+                    if ($this->cannotBypassLogin($actor, $discussion)) {
+                        $replacements->push($this->getPlain('login'));
+                        return;
+                    }
+                }
 
-        if ($allowed->count()) {
+                if (Str::contains($item, 'like="true"') && $this->notLiked($actor, $post)) {
+                    $replacements->push($this->getPlain('like'));
+                    return;
+                }
+
+                if (Str::contains($item, 'reply="true"') && $this->notReplied($actor, $discussion)) {
+                    $replacements->push($this->getPlain('reply'));
+                    return;
+                }
+
+                $replacements->push($item);
+            });
+
+            if (!$replacements->isEmpty()) {
+                $post->content = Str::replace($search->toArray(), $replacements->toArray(), $post->content);
+
+                return [
+                    'content' => $post->content,
+                    'contentHtml' => $post->formatContent($serializer->getRequest())
+                ];
+            }
+
             return $attributes;
         }
 
-        if ($actor->isGuest()) {
+        if ($discussion->first_post_id !== $post->id) {
+            return $attributes;
+        }
+
+        if ($this->cannotBypassLogin($actor, $discussion)) {
             return [
                 'content' => $this->getPlain('login'),
                 'contentHtml' => $this->getHtml('login')
             ];
         }
 
-        $actorId = $actor->id;
-
         if ($actor->id === $post->user_id) {
             return $attributes;
         }
 
-        if ($this->requires('like') && $actor->cannot('nearata-dsts.bypass-like')) {
-            $restricted = collect();
-
-            try {
-                $restricted = collect($discussion->tags)
-                    ->filter(function ($value, $key) use ($actor) {
-                        $id = $value->id;
-                        return $value->is_restricted && $actor->cannot("tag$id.nearata-dsts.bypass-like");
-                    });
-            } catch (\Throwable $th) {}
-
-            try {
-                $liked = $post->likes()
-                    ->where('user_id', $actorId)
-                    ->exists();
-
-                if ($restricted->count() && !$liked) {
-                    return [
-                        'content' => $this->getPlain('like'),
-                        'contentHtml' => $this->getHtml('like')
-                    ];
-                } else if (!$liked) {
-                    return [
-                        'content' => $this->getPlain('like'),
-                        'contentHtml' => $this->getHtml('like')
-                    ];
-                }
-            } catch (\Throwable $th) {}
+        if ($this->requires('like') && $this->notLiked($actor, $post)) {
+            return [
+                'content' => $this->getPlain('like'),
+                'contentHtml' => $this->getHtml('like')
+            ];
         }
 
-        if ($this->requires('reply') && $actor->cannot('nearata-dsts.bypass-reply')) {
-            $replied = $discussion->posts()
-                ->where('user_id', $actorId)
-                ->where('hidden_at', null)
-                ->exists();
-            $restricted = collect();
-
-            try {
-                $restricted = collect($discussion->tags)
-                    ->filter(function ($value, $key) use ($actor) {
-                        $id = $value->id;
-                        return $value->is_restricted && $actor->cannot("tag$id.nearata-dsts.bypass-reply");
-                    });
-            } catch (\Throwable $th) {}
-
-            if ($restricted->count() && !$replied) {
-                return [
-                    'content' => $this->getPlain('reply'),
-                    'contentHtml' => $this->getHtml('reply')
-                ];
-            } else if (!$replied) {
-                return [
-                    'content' => $this->getPlain('reply'),
-                    'contentHtml' => $this->getHtml('reply')
-                ];
-            }
+        if ($this->requires('reply') && $this->notReplied($actor, $discussion)) {
+            return [
+                'content' => $this->getPlain('reply'),
+                'contentHtml' => $this->getHtml('reply')
+            ];
         }
 
         return $attributes;
@@ -124,12 +107,87 @@ class ExtendBasicPostSerializer
 
     private function getHtml(string $key): string
     {
-        return '<p class="Nearata-dsts">'. $this->getPlain($key) .'</p>';
+        return '<p class="Nearata-dsts">' . $this->getPlain($key) . '</p>';
     }
 
     private function requires(string $key): bool
     {
         return $this->settings
             ->get("nearata-dsts.admin.settings.require_$key");
+    }
+
+    private function cannotBypassLogin(User $actor, Discussion $discussion): bool
+    {
+        $can = false;
+
+        try {
+            $can = !collect($discussion->tags)
+                ->filter(function ($value, $key) use ($actor) {
+                    return $value->is_restricted && $actor->can('nearata-dsts.bypass-login', $value);
+                })
+                ->isEmpty();
+        } catch (\Throwable $th) {
+        }
+
+        if ($can) {
+            return false;
+        }
+
+        return $actor->isGuest();
+    }
+
+    private function notLiked(User $actor, Post $post): bool
+    {
+        $liked = false;
+
+        try {
+            $liked = $post->likes()
+                ->where('user_id', $actor->id)
+                ->exists();
+
+        } catch (\Throwable $th) {
+        }
+
+        $cannot = false;
+
+        try {
+            $cannot = !collect($post->discussion->tags)
+                ->filter(function ($value, $key) use ($actor) {
+                    return $value->is_restricted && $actor->cannot('nearata-dsts.bypass-like', $value);
+                })
+                ->isEmpty();
+        } catch (\Throwable $th) {
+        }
+
+        if ($cannot) {
+            $liked = false;
+        }
+
+        return !$liked;
+    }
+
+    private function notReplied(User $actor, Discussion $discussion): bool
+    {
+        $replied = $discussion->posts()
+            ->where('user_id', $actor->id)
+            ->where('hidden_at', null)
+            ->exists();
+
+        $cannot = false;
+
+        try {
+            $cannot = !collect($discussion->tags)
+                ->filter(function ($value, $key) use ($actor) {
+                    return $value->is_restricted && $actor->cannot('nearata-dsts.bypass-reply', $value);
+                })
+                ->isEmpty();
+        } catch (\Throwable $th) {
+        }
+
+        if ($cannot) {
+            $replied = false;
+        }
+
+        return !$replied;
     }
 }
