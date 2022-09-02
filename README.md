@@ -2,10 +2,6 @@
 
 > A [Flarum](http://flarum.org) extension. Do something to see the first post of a discussion.
 
-## Preview
-
-[Imgur](https://imgur.com/a/TG8jjvC)
-
 ## Features
 
 - Guests can't see the first post.
