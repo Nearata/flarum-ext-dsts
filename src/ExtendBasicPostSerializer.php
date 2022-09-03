@@ -29,6 +29,11 @@ class ExtendBasicPostSerializer
         }
 
         $actor = $serializer->getActor();
+
+        if ($actor->isAdmin()) {
+            return $attributes;
+        }
+
         $discussion = $post->discussion;
 
         if (Str::contains($post->content, '[nearata-dsts')) {
