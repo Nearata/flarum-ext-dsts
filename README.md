@@ -20,7 +20,3 @@ composer require nearata/flarum-ext-dsts
 ```sh
 composer remove nearata/flarum-ext-dsts
 ```
-
-## Links
-
-- [Packagist](https://packagist.org/packages/nearata/flarum-ext-dsts)
