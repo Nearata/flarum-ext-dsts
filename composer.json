@@ -1,6 +1,6 @@
 {
     "name": "nearata/flarum-ext-dsts",
-    "description": "Do something to see the first post of a discussion.",
+    "description": "Do something to see the posts of a discussion.",
     "keywords": [
         "flarum"
     ],

@@ -1,6 +1,6 @@
 # Do Something To See
 
-> A [Flarum](http://flarum.org) extension. Do something to see the first post of a discussion.
+> A [Flarum](http://flarum.org) extension. Do something to see the posts of a discussion.
 
 ## Features
 
