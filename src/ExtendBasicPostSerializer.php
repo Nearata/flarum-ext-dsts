@@ -97,7 +97,9 @@ class ExtendBasicPostSerializer
             return $attributes;
         }
 
-        if ($discussion->first_post_id !== $post->id) {
+        $onlyFirstPost = $this->settings->get('nearata-dsts.admin.settings.hide_only_first_post');
+
+        if ($onlyFirstPost && $discussion->first_post_id !== $post->id) {
             return $attributes;
         }
 

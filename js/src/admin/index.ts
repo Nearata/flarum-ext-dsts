@@ -8,6 +8,12 @@ app.initializers.add("nearata-dsts", () => {
     app.extensionData
         .for("nearata-dsts")
         .registerSetting({
+            setting: "nearata-dsts.admin.settings.hide_only_first_post",
+            label: trans("settings.hide_only_first_post"),
+            type: "boolean",
+            help: trans("settings.hide_only_first_post_help"),
+        })
+        .registerSetting({
             setting: "nearata-dsts.admin.settings.require_like",
             label: trans("settings.require_like"),
             type: "boolean",
@@ -43,6 +49,7 @@ app.initializers.add("nearata-dsts", () => {
                 icon: "fas fa-eye",
                 label: trans("permissions.can_bypass_like"),
                 permission: "nearata-dsts.bypass-like",
+                // @ts-ignore
                 tagScoped: true,
             },
             "view"
@@ -52,6 +59,7 @@ app.initializers.add("nearata-dsts", () => {
                 icon: "fas fa-eye",
                 label: trans("permissions.can_bypass_reply"),
                 permission: "nearata-dsts.bypass-reply",
+                // @ts-ignore
                 tagScoped: true,
             },
             "view"
@@ -62,6 +70,7 @@ app.initializers.add("nearata-dsts", () => {
                 label: trans("permissions.can_bypass_login"),
                 permission: "nearata-dsts.bypass-login",
                 allowGuest: true,
+                // @ts-ignore
                 tagScoped: true,
             },
             "view"

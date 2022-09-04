@@ -5,6 +5,8 @@ nearata-dsts:
       can_bypass_reply: Can bypass reply
       can_bypass_login: Can bypass login
     settings:
+      hide_only_first_post: Hide only first post
+      hide_only_first_post_help: This option is overriden by BBCode.
       require_like: Require like
       require_like_help: Requires <strong>flarum/likes</strong> extension.
       require_reply: Require reply
