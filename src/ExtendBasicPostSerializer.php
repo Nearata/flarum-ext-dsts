@@ -112,7 +112,7 @@ class ExtendBasicPostSerializer
 
     private function getHtml(string $key): string
     {
-        return '<p class="Nearata-dsts">' . $this->getPlain($key) . '</p>';
+        return '<p class="nearata-dsts">' . $this->getPlain($key) . '</p>';
     }
 
     private function requires(string $key): bool
