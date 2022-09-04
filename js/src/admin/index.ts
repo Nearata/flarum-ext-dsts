@@ -18,6 +18,26 @@ app.initializers.add("nearata-dsts", () => {
             label: trans("settings.require_reply"),
             type: "boolean",
         })
+        .registerSetting(() => {
+            return m("h2", trans("settings.fof_upload.section_title"));
+        })
+        .registerSetting({
+            setting: "nearata-dsts.admin.settings.hide_only_files",
+            label: trans("settings.hide_only_files"),
+            type: "boolean",
+            help: trans("settings.hide_only_files_help"),
+        })
+        .registerSetting({
+            setting: "nearata-dsts.admin.settings.fof_upload.require_like",
+            label: trans("settings.fof_upload.require_like"),
+            type: "boolean",
+            help: trans("settings.fof_upload.require_like_help"),
+        })
+        .registerSetting({
+            setting: "nearata-dsts.admin.settings.fof_upload.require_reply",
+            label: trans("settings.fof_upload.require_reply"),
+            type: "boolean",
+        })
         .registerPermission(
             {
                 icon: "fas fa-eye",

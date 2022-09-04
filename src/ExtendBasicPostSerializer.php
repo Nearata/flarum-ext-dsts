@@ -36,11 +36,36 @@ class ExtendBasicPostSerializer
 
         $discussion = $post->discussion;
 
-        if (Str::contains($post->content, '[nearata-dsts')) {
-            $search = Str::matchAll('/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]/s', $post->content);
+        $fofUpload = $this->settings->get('nearata-dsts.admin.settings.hide_only_files');
+        $fofUploadLike = $this->settings->get('nearata-dsts.admin.settings.fof_upload.require_like');
+        $fofUploadReply = $this->settings->get('nearata-dsts.admin.settings.fof_upload.require_reply');
+
+        if (Str::contains($post->content, '[nearata-dsts') || ($fofUpload && Str::contains($post->content, '[upl-image-preview'))) {
+            $search = $fofUpload ? Str::matchAll('/\[upl-image-preview .*?\]/s', $post->content)
+                : Str::matchAll('/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]/s', $post->content);
             $replacements = collect();
 
-            $search->each(function ($item) use ($replacements, $post, $actor, $discussion) {
+            $search->each(function ($item) use ($replacements, $post, $actor, $discussion, $fofUploadLike, $fofUploadReply) {
+                if (Str::contains($item, '[upl-image-preview')) {
+                    if ($this->cannotBypassLogin($actor, $discussion)) {
+                        $replacements->push($this->getPlain('fof_upload.login'));
+                        return;
+                    }
+
+                    if ($fofUploadLike && $this->notLiked($actor, $post)) {
+                        $replacements->push($this->getPlain('fof_upload.like'));
+                        return;
+                    }
+
+                    if ($fofUploadReply && $this->notReplied($actor, $discussion)) {
+                        $replacements->push($this->getPlain('fof_upload.reply'));
+                        return;
+                    }
+
+                    $replacements->push($item);
+                    return;
+                }
+
                 if (Str::contains($item, 'login="true"')) {
                     if ($this->cannotBypassLogin($actor, $discussion)) {
                         $replacements->push($this->getPlain('login'));

@@ -10,6 +10,10 @@ app.initializers.add("nearata-dsts", () => {
         Application.prototype,
         "request",
         function (promise, originalOptions) {
+            if (app.session.user && app.session.user.isAdmin()) {
+                return;
+            }
+
             const apiUrl = app.forum.attribute("apiUrl");
             const isPost = originalOptions.url.startsWith(`${apiUrl}/posts`);
 
