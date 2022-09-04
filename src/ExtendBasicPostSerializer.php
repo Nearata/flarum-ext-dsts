@@ -41,8 +41,7 @@ class ExtendBasicPostSerializer
         $fofUploadReply = $this->settings->get('nearata-dsts.admin.settings.fof_upload.require_reply');
 
         if (Str::contains($post->content, '[nearata-dsts') || ($fofUpload && Str::contains($post->content, '[upl-image-preview'))) {
-            $search = $fofUpload ? Str::matchAll('/\[upl-image-preview .*?\]/s', $post->content)
-                : Str::matchAll('/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]/s', $post->content);
+            $search = Str::matchAll('/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]|\[upl-image-preview .*?\]/s', $post->content);
             $replacements = collect();
 
             $search->each(function ($item) use ($replacements, $post, $actor, $discussion, $fofUploadLike, $fofUploadReply) {
