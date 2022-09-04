@@ -4,9 +4,10 @@
 
 ## Features
 
-- Guests can't see the first post.
+- Guests can't see the first post. (toggable)
 - Require user to like the post. (toggable)
 - Require user to reply to the discussion. (toggable)
+- BBCode support.
 
 ## Install
 
