@@ -37,7 +37,7 @@ class ExtendBasicPostSerializer
         $discussion = $post->discussion;
 
         if (Str::contains($post->content, '[nearata-dsts')) {
-            $search = Str::matchAll("/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]/s", $post->content);
+            $search = Str::matchAll('/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]/s', $post->content);
             $replacements = collect();
 
             $search->each(function ($item) use ($replacements, $post, $actor, $discussion) {
