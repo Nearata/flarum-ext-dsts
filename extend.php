@@ -4,6 +4,10 @@ namespace Nearata\Dsts;
 
 use Flarum\Extend;
 use Flarum\Api\Serializer\BasicPostSerializer;
+use Flarum\Post\Event\Saving;
+use Nearata\Dsts\Api\Serializer\ExtendBasicPostSerializer;
+use Nearata\Dsts\Formatter\ExtendFormatter;
+use Nearata\Dsts\Post\Event\ListenSaving;
 
 return [
     (new Extend\Frontend('admin'))
@@ -18,5 +22,8 @@ return [
         ->attributes(ExtendBasicPostSerializer::class),
 
     (new Extend\Formatter)
-        ->configure(ExtendFormatter::class)
+        ->configure(ExtendFormatter::class),
+
+    (new Extend\Event)
+        ->listen(Saving::class, ListenSaving::class)
 ];

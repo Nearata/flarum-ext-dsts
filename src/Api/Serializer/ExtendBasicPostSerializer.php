@@ -1,6 +1,6 @@
 <?php
 
-namespace Nearata\Dsts;
+namespace Nearata\Dsts\Api\Serializer;
 
 use Flarum\Api\Serializer\BasicPostSerializer;
 use Flarum\Discussion\Discussion;
@@ -8,6 +8,7 @@ use Flarum\Post\CommentPost;
 use Flarum\Post\Post;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\User\User;
+use Illuminate\Support\Arr;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Illuminate\Support\Str;
 
@@ -28,9 +29,15 @@ class ExtendBasicPostSerializer
             return $attributes;
         }
 
+        $attributes['nearataDsts'] = false;
+
         $actor = $serializer->getActor();
 
         if ($actor->isAdmin()) {
+            return $attributes;
+        }
+
+        if ($actor->id === $post->user_id) {
             return $attributes;
         }
 
@@ -41,60 +48,39 @@ class ExtendBasicPostSerializer
         $fofUploadReply = $this->settings->get('nearata-dsts.admin.settings.fof_upload.require_reply');
 
         if (Str::contains($post->content, '[nearata-dsts') || ($fofUpload && Str::contains($post->content, '[upl-image-preview'))) {
-            $search = Str::matchAll('/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]|\[upl-image-preview .*?\]/s', $post->content);
-            $replacements = collect();
-
-            $search->each(function ($item) use ($replacements, $post, $actor, $discussion, $fofUploadLike, $fofUploadReply) {
-                if (Str::contains($item, '[upl-image-preview')) {
+            $post->content = preg_replace_callback('/\[nearata-dsts .*?\].*?\[\/nearata-dsts\]|\[upl-image-preview .*?\]/s', function ($m) use ($actor, $post, $discussion, $fofUploadLike, $fofUploadReply) {
+                if (Str::contains($m[0], '[upl-image-preview')) {
                     if ($this->cannotBypassLogin($actor, $discussion)) {
-                        $replacements->push($this->getPlain('fof_upload.login'));
-                        return;
+                        return $this->getError('fof_upload.login');
                     }
 
                     if ($fofUploadLike && $this->notLiked($actor, $post)) {
-                        $replacements->push($this->getPlain('fof_upload.like'));
-                        return;
+                        return $this->getError('fof_upload.like');
                     }
 
                     if ($fofUploadReply && $this->notReplied($actor, $discussion)) {
-                        $replacements->push($this->getPlain('fof_upload.reply'));
-                        return;
+                        return $this->getError('fof_upload.reply');
                     }
 
-                    $replacements->push($item);
-                    return;
+                    return $m[0];
                 }
 
-                if (Str::contains($item, 'login="true"')) {
-                    if ($this->cannotBypassLogin($actor, $discussion)) {
-                        $replacements->push($this->getPlain('login'));
-                        return;
-                    }
+                if (Str::contains($m[0], 'login="true"') && $this->cannotBypassLogin($actor, $discussion)) {
+                    return $this->getError('login');
                 }
 
-                if (Str::contains($item, 'like="true"') && $this->notLiked($actor, $post)) {
-                    $replacements->push($this->getPlain('like'));
-                    return;
+                if (Str::contains($m[0], 'like="true"') && $this->notLiked($actor, $post)) {
+                    return $this->getError('like');
                 }
 
-                if (Str::contains($item, 'reply="true"') && $this->notReplied($actor, $discussion)) {
-                    $replacements->push($this->getPlain('reply'));
-                    return;
+                if (Str::contains($m[0], 'reply="true"') && $this->notReplied($actor, $discussion)) {
+                    return $this->getError('reply');
                 }
 
-                $replacements->push($item);
-            });
+                return $m[0];
+            }, $post->content);
 
-            if (!$replacements->isEmpty()) {
-                $post->content = Str::replace($search->toArray(), $replacements->toArray(), $post->content);
-
-                return [
-                    'content' => $post->content,
-                    'contentHtml' => $post->formatContent($serializer->getRequest())
-                ];
-            }
-
-            return $attributes;
+            return $this->getResponse($post, $attributes, $serializer);
         }
 
         $onlyFirstPost = $this->settings->get('nearata-dsts.admin.settings.hide_only_first_post');
@@ -104,41 +90,22 @@ class ExtendBasicPostSerializer
         }
 
         if ($this->cannotBypassLogin($actor, $discussion)) {
-            return [
-                'content' => $this->getPlain('login'),
-                'contentHtml' => $this->getHtml('login')
-            ];
-        }
-
-        if ($actor->id === $post->user_id) {
+            $post->content = $this->getError('login');
+        } else if ($this->requires('like') && $this->notLiked($actor, $post)) {
+            $post->content = $this->getError('like');
+        } else if ($this->requires('reply') && $this->notReplied($actor, $discussion)) {
+            $post->content = $this->getError('reply');
+        } else {
             return $attributes;
         }
 
-        if ($this->requires('like') && $this->notLiked($actor, $post)) {
-            return [
-                'content' => $this->getPlain('like'),
-                'contentHtml' => $this->getHtml('like')
-            ];
-        }
-
-        if ($this->requires('reply') && $this->notReplied($actor, $discussion)) {
-            return [
-                'content' => $this->getPlain('reply'),
-                'contentHtml' => $this->getHtml('reply')
-            ];
-        }
-
-        return $attributes;
+        return $this->getResponse($post, $attributes, $serializer);
     }
 
-    private function getPlain(string $key): string
+    private function getError(string $key): string
     {
-        return $this->translator->trans("nearata-dsts.forum.$key");
-    }
-
-    private function getHtml(string $key): string
-    {
-        return '<p class="nearata-dsts">' . $this->getPlain($key) . '</p>';
+        $text = $this->translator->trans("nearata-dsts.forum.$key");
+        return "[nearata-dsts-error] $text [/nearata-dsts-error]";
     }
 
     private function requires(string $key): bool
@@ -175,7 +142,6 @@ class ExtendBasicPostSerializer
             $liked = $post->likes()
                 ->where('user_id', $actor->id)
                 ->exists();
-
         } catch (\Throwable $th) {
         }
 
@@ -220,5 +186,24 @@ class ExtendBasicPostSerializer
         }
 
         return !$replied;
+    }
+
+    private function getResponse($post, $attributes, $serializer): array
+    {
+        $response = [
+            'content' => $post->content,
+            'contentHtml' => $post->formatContent($serializer->getRequest()),
+            'nearataDsts' => true
+        ];
+
+        if (!Arr::has($attributes, 'content')) {
+            unset($response['content']);
+        }
+
+        if (!Arr::has($attributes, 'contentHtml')) {
+            unset($response['contentHtml']);
+        }
+
+        return $response;
     }
 }

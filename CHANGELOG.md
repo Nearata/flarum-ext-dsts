@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detect CommentPost only.
 - Add fof/upload support. If this option is enabled, the other options will be ignored.
 - Add ability to hide only the first post or the whole discussion.
+- Add ability to style the warning message by target `.nearata-dsts.hidden`
 
 ## [2.2.0] - 2022-08-30
 
