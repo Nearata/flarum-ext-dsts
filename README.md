@@ -1,11 +1,18 @@
 # Do Something To See
 
-> A [Flarum](http://flarum.org) extension. Do something to see the posts of a discussion.
+> Do something to see the posts of a discussion.
 
 ## Install
 
 ```sh
-composer require nearata/flarum-ext-dsts
+composer require nearata/flarum-ext-dsts:"*"
+```
+
+## Update
+
+```sh
+composer update nearata/flarum-ext-dsts:"*"
+php flarum cache:clear
 ```
 
 ## Remove

@@ -9,12 +9,13 @@ use Flarum\Post\Post;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\User\User;
 use Illuminate\Support\Arr;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Illuminate\Support\Str;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ExtendBasicPostSerializer
 {
     protected $translator;
+
     protected $settings;
 
     public function __construct(TranslatorInterface $translator, SettingsRepositoryInterface $settings)
@@ -25,7 +26,7 @@ class ExtendBasicPostSerializer
 
     public function __invoke(BasicPostSerializer $serializer, Post $post, array $attributes)
     {
-        if (!($post instanceof CommentPost)) {
+        if (! ($post instanceof CommentPost)) {
             return $attributes;
         }
 
@@ -91,9 +92,9 @@ class ExtendBasicPostSerializer
 
         if ($this->cannotBypassLogin($actor, $discussion)) {
             $post->content = $this->getError('login');
-        } else if ($this->requires('like') && $this->notLiked($actor, $post)) {
+        } elseif ($this->requires('like') && $this->notLiked($actor, $post)) {
             $post->content = $this->getError('like');
-        } else if ($this->requires('reply') && $this->notReplied($actor, $discussion)) {
+        } elseif ($this->requires('reply') && $this->notReplied($actor, $discussion)) {
             $post->content = $this->getError('reply');
         } else {
             return $attributes;
@@ -105,6 +106,7 @@ class ExtendBasicPostSerializer
     private function getError(string $key): string
     {
         $text = $this->translator->trans("nearata-dsts.forum.$key");
+
         return "[nearata-dsts-error] $text [/nearata-dsts-error]";
     }
 
@@ -119,7 +121,7 @@ class ExtendBasicPostSerializer
         $can = false;
 
         try {
-            $can = !collect($discussion->tags)
+            $can = ! collect($discussion->tags)
                 ->filter(function ($value, $key) use ($actor) {
                     return $value->is_restricted && $actor->can('nearata-dsts.bypass-login', $value);
                 })
@@ -148,7 +150,7 @@ class ExtendBasicPostSerializer
         $cannot = false;
 
         try {
-            $cannot = !collect($post->discussion->tags)
+            $cannot = ! collect($post->discussion->tags)
                 ->filter(function ($value, $key) use ($actor) {
                     return $value->is_restricted && $actor->cannot('nearata-dsts.bypass-like', $value);
                 })
@@ -160,7 +162,7 @@ class ExtendBasicPostSerializer
             $liked = false;
         }
 
-        return !$liked;
+        return ! $liked;
     }
 
     private function notReplied(User $actor, Discussion $discussion): bool
@@ -173,7 +175,7 @@ class ExtendBasicPostSerializer
         $cannot = false;
 
         try {
-            $cannot = !collect($discussion->tags)
+            $cannot = ! collect($discussion->tags)
                 ->filter(function ($value, $key) use ($actor) {
                     return $value->is_restricted && $actor->cannot('nearata-dsts.bypass-reply', $value);
                 })
@@ -185,7 +187,7 @@ class ExtendBasicPostSerializer
             $replied = false;
         }
 
-        return !$replied;
+        return ! $replied;
     }
 
     private function getResponse($post, $attributes, $serializer): array
@@ -193,14 +195,14 @@ class ExtendBasicPostSerializer
         $response = [
             'content' => $post->content,
             'contentHtml' => $post->formatContent($serializer->getRequest()),
-            'nearataDsts' => true
+            'nearataDsts' => true,
         ];
 
-        if (!Arr::has($attributes, 'content')) {
+        if (! Arr::has($attributes, 'content')) {
             unset($response['content']);
         }
 
-        if (!Arr::has($attributes, 'contentHtml')) {
+        if (! Arr::has($attributes, 'contentHtml')) {
             unset($response['contentHtml']);
         }
 
