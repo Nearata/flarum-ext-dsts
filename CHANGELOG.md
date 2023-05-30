@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump php to 8.0
 - bump flarum to 1.7
 - update dependencies
+- feat: made fof/upload work within other options
+- feat: ability to enable/disable options
+- feat: bbcode permission-based, no longer toggable
+- feat: if bbcode is found in a post, all other options will be ignored
 
 ## [2.3.0] - 2022-09-07
 
