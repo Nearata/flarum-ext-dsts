@@ -109,7 +109,7 @@ class BasicPostSerializerAttributes
             return $attributes;
         });
 
-        return $hasBBCode = true;
+        return $hasBBCode;
     }
 
     private function handleGlobal(CommentPost $post, User $actor): ?string
