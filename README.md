@@ -6,6 +6,10 @@
 
 > Do something to see the posts of a discussion.
 
+## Screenshots
+
+See the [screenshots](screenshots) subfolder.
+
 ## Install
 
 ```sh
